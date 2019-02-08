@@ -15,6 +15,33 @@
     daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   };
 
+  // Template data:
+    var injectedForecast = {
+      key: 'newyork',
+      label: 'New York, NY',
+      currently: {
+        time: 1453489481,
+        summary: 'Clear',
+        icon: 'partly-cloudy-day',
+        temperature: 52.74,
+        apparentTemperature: 74.34,
+        precipProbability: 0.20,
+        humidity: 0.77,
+        windBearing: 125,
+        windSpeed: 1.52
+      },
+      daily: {
+        data: [
+          {icon: 'clear-day', temperatureMax: 55, temperatureMin: 34},
+          {icon: 'rain', temperatureMax: 55, temperatureMin: 34},
+          {icon: 'snow', temperatureMax: 55, temperatureMin: 34},
+          {icon: 'sleet', temperatureMax: 55, temperatureMin: 34},
+          {icon: 'fog', temperatureMax: 55, temperatureMin: 34},
+          {icon: 'wind', temperatureMax: 55, temperatureMin: 34},
+          {icon: 'partly-cloudy-day', temperatureMax: 55, temperatureMin: 34}
+        ]
+      }
+    };
 
   /*****************************************************************************
    *
@@ -41,6 +68,7 @@
     var label = selected.textContent;
     app.getForecast(key, label);
     app.selectedCities.push({key: key, label: label});
+    app.saveSelectedCities();
     app.toggleAddDialog(false);
   });
 
@@ -142,6 +170,10 @@
     request.send();
   };
 
+  app.saveSelectedCities = () => {
+    window.localforage.setItem('selectedCities', app.selectedCities);
+
+  }
   // Iterate all of the cards and attempt to get the latest forecast data
   app.updateForecasts = function() {
     var keys = Object.keys(app.visibleCards);
@@ -149,5 +181,23 @@
       app.getForecast(key);
     });
   };
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    window.localforage.getItem('selectedCities', ( err, cityList ) => {
+      if(cityList){
+        app.selectedCities = cityList;
+        app.selectedCities.forEach( (city) => {
+          app.getForecast(city.key, city.label);
+        });
+      } else{
+        app.updateForecastCard(injectedForecast);
+        app.selectedCities = [
+          { key: injectedForecast.key, label: injectedForecast.label }
+        ];
+        app.saveSelectedCities();
+      }
+    });
+  });
+  app.updateForecastCard(injectedForecast);
 
 })();
